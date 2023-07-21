@@ -1,5 +1,5 @@
 # geneticAlgorithmNetworkHamiltonian
-Genetic algorithm for automated network Hamiltonian model discovery
+Genetic algorithm for automated network Hamiltonian model parameterization
 
 This code implements the genetic algorithm described in the article:
 
