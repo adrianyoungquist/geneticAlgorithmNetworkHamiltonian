@@ -1,4 +1,6 @@
 # geneticAlgorithmNetworkHamiltonian
+[![DOI](https://zenodo.org/badge/669169796.svg)](https://zenodo.org/badge/latestdoi/669169796)
+
 Genetic algorithm for automated network Hamiltonian model parameterization
 
 This code implements the genetic algorithm described in the article:
