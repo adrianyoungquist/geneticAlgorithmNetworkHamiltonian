@@ -18,6 +18,10 @@ the figure in the aforementioned article showing the evolution of different
 generations of models as the genetic algorithm converges on a region of parameter 
 space that produces maximal fibril yield for 2-ribbon type amyloid fibril structures.
 To give an idea of run time, this main function runs in under 10 minutes on a 
-2019 MacBook Pro with a 2.4 GHz 8-Core Intel Core i9 processor and 64 GB of RAM.
+2019 MacBook Pro with a 2.4 GHz 8-Core Intel Core i9 processor and 64 GB of RAM. Users
+who wish to apply the genetic algorithm toward developing network Hamiltonian models
+for a particular graph structure of interest should use main.R script as a guide
+for developing their script, and also modify fibril_assay.R so that it determines
+membership in in the user's graph structure of interest. 
 
 Code written by Gianmarc Grazioli 
