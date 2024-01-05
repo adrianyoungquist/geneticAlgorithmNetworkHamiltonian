@@ -10,7 +10,7 @@ This code implements the genetic algorithm described in the article:
 
 by: Gianmarc Grazioli, Andy Tao, Inika Bhatia, and Patrick Regan 
 
-currently under review at Digital Discovery - Royal Society of Chemistry
+currently under review at Journal of Physical Chemistry B - American Chemical Society
 preprint: https://chemrxiv.org/engage/chemrxiv/article-details/64a3d048ba3e99daef7c671a
 
 This main function carries out automated discovery of network Hamiltonian models
