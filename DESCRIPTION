@@ -1,0 +1,15 @@
+Package: genalg
+Type: Package
+Title: Genetic Algorithm
+Version: 0.1.0
+Authors@R: c(
+      person("Gianmarc", "Grazioli", , "gianmarc.grazioli@sjsu.edu", role = c("aut", "cre"),
+      person("Adrian", "Youngquist", , "adrian.youngquist@gmail.com", role = "aut")
+  )
+Description: Runs a genetic algorithm
+License: MIT
+Encoding: UTF-8
+LazyData: true
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
