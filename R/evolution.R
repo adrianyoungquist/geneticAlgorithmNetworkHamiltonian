@@ -129,11 +129,11 @@ evolution <- function(origParents, numGenerations, numLinKids, numMutantsInit,
   return(generations)
 }
 
-testIt = FALSE
+testIt = TRUE
 if(testIt){
   nCount=48 #number of nodes
   stats = "edges+kstar(2)+nsp(1:2)+esp(0)"
   theOriginals = list(c(157.912 -log(nCount),-24,-3.3,-2.7,-20), 
                       c(157.912 -log(nCount),-24,-3.3,-2.7,-20))
-  myGenerations = evolution(theOriginals, 3, 2, 2, "1,2 2-ribbon", stats, nCount)
+  myGenerations = evolution(theOriginals, 4, 4, 2, "1,2 2-ribbon", stats, nCount, minLineDensity = 0.75)
 }

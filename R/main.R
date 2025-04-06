@@ -20,9 +20,9 @@
 # Code written by Gianmarc Grazioli 
 
 source("fibril_assay.R")
-source("evolution.R")
-source("breeding.R") 
-source("simulate_from_param_list.R") 
+source("R/evolution.R")
+source("R/breeding.R")
+source("R/simulate_from_param_list.R")
 source("sample_hyperspheroid.R")
 library(ergm)
 library(sna)

@@ -20,7 +20,7 @@ get.all.idx.pairs <- function(numList){
 }
 
 breedTwoParents <- function(vec1, vec2, numPointsInit, useLineDensity=TRUE, minLineDensity=.5){
-  basis = vec2 - vec1
+  basis <- vec2 - vec1
   if(useLineDensity){
     distance <- sqrt(sum(basis^2))
     lineDensity <- numPointsInit/distance
@@ -76,6 +76,7 @@ breedGeneration <- function(parents, numLinKids, numMutants, noiseVar=.1,
     print("No breeding pairs formed, returning parents, try increasing minLineDensity")
     out = parents
   }
+  # TODO isn't this always true??
   if(length(out) >= 2 && numMutants > 0){
     mutants <- list()
     ctr = 1
@@ -102,7 +103,7 @@ breedGeneration <- function(parents, numLinKids, numMutants, noiseVar=.1,
   return(out)
 }
 
-testIt = F
+testIt = TRUE
 if(testIt){
 
 gen0 = list(c(1,2), c(2,7), c(3, 13), c(10,2), c(11,7), c(12, 13))

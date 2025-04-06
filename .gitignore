@@ -1,7 +1,4 @@
-*.xyz
-*.log
-adjacency_matrix.txt
-velocity_data.txt
+.Rprofile
 
 *.o
 *.so
