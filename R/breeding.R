@@ -1,129 +1,129 @@
-# Given two parent ERGM parameters, this returns a new set of parameters that
-# includes both parents, children points along the line connecting the parents, 
-# and mutant children that are noised up versions of the other children.
+# ------------------------------------------------------------------------
+# breeding.R
 #
-# written by Gianmarc Grazioli 
+# Purpose: Functions for breeding parent vectors and generating new generations
+# for the genetic algorithm in network fibril evolution.
+#
+# Author: Gianmarc Grazioli and contributors
+# License: GPL-3
+#
+# This file is part of the fibga R package.
+# See GPL-3 License at <https://www.gnu.org/licenses/>.
+# ------------------------------------------------------------------------
 
-get.all.idx.pairs <- function(numList){
-  len = length(numList)
-  out <- vector("list", len*(len-1)/2)
-  ctr=1
-  for (i in 1:len) {
-    for (j in 1:len) {
-      if(i < j){
-        out[[ctr]] = c(i,j)
-        ctr = ctr + 1
-      }
-    }
-  }
-  return(out)
-}
+#' @title Breeding Functions for Parameter Evolution
+#' @description Functions to create offspring parameter vectors by interpolation and mutation, supporting the genetic algorithm.
+#' @name breeding
+NULL
 
-breedTwoParents <- function(vec1, vec2, numPointsInit, useLineDensity=TRUE, minLineDensity=.5){
+#' Breed Two Parents
+#'
+#' @description
+#' Creates evenly spaced interpolated points between two parent vectors based on the distance between them.
+#'
+#' @param vec1 First parent vector.
+#' @param vec2 Second parent vector.
+#' @param num_points_init Initial number of children points to generate.
+#' @param use_line_density Logical; adjust number of points based on distance.
+#' @param min_line_density Minimum allowed point density along the line.
+#' @return A list of offspring vectors.
+#' @examples
+#' parent1 <- c(0, 0)
+#' parent2 <- c(1, 1)
+#' children <- breed_two_parents(parent1, parent2, 5)
+#' print(children)
+#' @export
+breed_two_parents <- function(vec1, vec2, num_points_init, use_line_density = TRUE, min_line_density = 0.5) {
   basis <- vec2 - vec1
-  if(useLineDensity){
-    distance <- sqrt(sum(basis^2))
-    lineDensity <- numPointsInit/distance
-    if(lineDensity < minLineDensity){
-      numPoints <- round(minLineDensity*distance)
-    }else{numPoints <- numPointsInit}
-  }else{numPoints <- numPointsInit}
-  steps = seq(from = 0, to = 1, length.out = numPoints)
-  out <- list()
-  for(i in 1:length(steps)){
-    out[[i]] <- vec1 + steps[[i]]*basis
+  distance <- sqrt(sum(basis^2))
+
+  # Adjust number of points based on the distance if desired
+  num_points <- if (use_line_density) {
+    line_density <- num_points_init / distance
+    if (line_density < min_line_density) round(min_line_density * distance) else num_points_init
+  } else {
+    num_points_init
   }
-  if(length(out) > 2){
-    out = out[2:(length(out)-1)]
-    #parents returned later, so only return the children
-  }
-  return(out)
+
+  steps <- seq(0, 1, length.out = num_points)
+  children <- lapply(steps, function(s) vec1 + s * basis)
+
+  if (length(children) > 2) children <- children[-c(1, length(children))]
+  return(children)
 }
 
-addNoiseToPoint <-function(vec, noiseVar=.05){
-  out = c()
-  for (v in vec){
-    out = c(out, rnorm(1, v, noiseVar))
-  }
-  return(out)
+#' Add Noise to a Point
+#'
+#' @description
+#' Adds independent Gaussian noise to each coordinate of a vector.
+#'
+#' @param vec A numeric vector.
+#' @param noise_var Standard deviation of noise.
+#' @return A noisy vector.
+#' @examples
+#' add_noise_to_point(c(1, 2, 3), noise_var = 0.1)
+#' @importFrom stats rnorm
+#' @export
+add_noise_to_point <- function(vec, noise_var = 0.05) {
+  vec + rnorm(length(vec), mean = 0, sd = noise_var)
 }
 
-breedGeneration <- function(parents, numLinKids, numMutants, noiseVar=.1, 
-                            useLineDensity=TRUE, minLineDensity=.5, pairMax=10000, childMax = 100000){
-  # create list of all possible parent pairs, then use breedTwoParents() to create 
-  # an entire generation of new parameters.
-  if(numLinKids < 3){print("If numLinKids < 3, then no points between will be produced.")}
-  myPairs <- get.all.idx.pairs(parents)
-  if(length(myPairs) > pairMax){
-    print("Max pairs reached, proliferation may be too high.")
-    myPairs = sample(myPairs, pairMax)
+#' Breed a New Generation
+#'
+#' @description
+#' Breeds a new generation by interpolating between all parent pairs and mutating children and parents.
+#'
+#' @param parents List of parent vectors.
+#' @param num_lin_kids Number of children between each parent pair.
+#' @param num_mutants Number of mutants per child.
+#' @param noise_var Variance of the Gaussian noise for mutation.
+#' @param use_line_density Logical; adapt number of points to distance.
+#' @param min_line_density Minimum line density.
+#' @param pair_max Maximum number of parent pairs.
+#' @param child_max Maximum number of total offspring.
+#' @return A list of offspring vectors.
+#' @examples
+#' parents <- list(c(0, 0), c(1, 1), c(2, 2))
+#' new_gen <- breed_generation(parents, num_lin_kids = 5, num_mutants = 2)
+#' length(new_gen)
+#'
+#' @importFrom utils combn
+#' @export
+breed_generation <- function(parents, num_lin_kids, num_mutants, noise_var = 0.1,
+                             use_line_density = TRUE, min_line_density = 0.5,
+                             pair_max = 10000, child_max = 100000) {
+  if (num_lin_kids < 3) warning("If num_lin_kids < 3, no points between will be created.")
+
+  pairs <- utils::combn(seq_along(parents), 2, simplify = FALSE)
+  log_message("INFO", "pairs:")
+  log_message("INFO", pairs)
+  if (length(pairs) > pair_max) {
+    warning("Max pairs exceeded, sampling subset.")
+    pairs <- sample(pairs, pair_max)
   }
-  out = list()
-  for (p in myPairs){
-    par1 = parents[[p[[1]]]]
-    par2 = parents[[p[[2]]]]
-    if(sum(abs(par1 - par2)) > .000000001){# avoid underflow errors
-      if(sqrt(sum((par1 - par2)^2))*minLineDensity > 1){
-        # if pair not too closely related so that minLineDensity*distance would 
-        #produce 1 or more children in the space between, breed them:
-        out <- c(out, breedTwoParents(par1, par2, numLinKids, 
-                                      useLineDensity=useLineDensity, 
-                                      minLineDensity=minLineDensity))  
-      }
+
+  children <- do.call(c, lapply(pairs, function(pair) {
+    par1 <- parents[[pair[1]]]
+    par2 <- parents[[pair[2]]]
+    dist <- sqrt(sum((par1 - par2)^2))
+    if (dist * min_line_density > 1) {
+      breed_two_parents(par1, par2, num_lin_kids, use_line_density, min_line_density)
+    } else {
+      NULL
     }
+  }))
+
+  if (length(children) < 2) {
+    warning("No breeding pairs formed; returning parents.")
+    return(parents)
   }
-  if(length(out) < 2){
-    print("No breeding pairs formed, returning parents, try increasing minLineDensity")
-    out = parents
+
+  if (num_mutants > 0) {
+    mutant_children <- lapply(rep(children, each = num_mutants), add_noise_to_point, noise_var = noise_var)
+    if (length(mutant_children) > child_max) mutant_children <- sample(mutant_children, child_max)
+    parent_mutants <- lapply(rep(parents, each = num_mutants), add_noise_to_point, noise_var = noise_var)
+    children <- c(mutant_children, parent_mutants, parents)
   }
-  # TODO isn't this always true??
-  if(length(out) >= 2 && numMutants > 0){
-    mutants <- list()
-    ctr = 1
-    for (i in 1:length(out)){
-      for (j in 1:numMutants){
-        mutants[[ctr]] <- addNoiseToPoint(out[[i]], noiseVar = noiseVar)
-        ctr = ctr + 1
-      }
-    }
-    out = c(out, mutants)
-    if(length(out) > childMax){
-      out = sample(out, childMax)
-    }
-    parentMutants <- list()
-    ctr = 1
-    for (i in 1:length(parents)){
-      for (j in 1:numMutants){
-        parentMutants[[ctr]] <- addNoiseToPoint(parents[[i]], noiseVar = noiseVar)
-        ctr = ctr + 1
-      }
-    }
-    out = c(out, parentMutants, parents)
-  }
-  return(out)
-}
 
-testIt = TRUE
-if(testIt){
-
-gen0 = list(c(1,2), c(2,7), c(3, 13), c(10,2), c(11,7), c(12, 13))
-gen0_x = lapply(gen0, '[[', 1)
-gen0_y = lapply(gen0, '[[', 2)
-plot(gen0_x, gen0_y, col=rgb(.9, 0, .7,.5), pch=19)
-
-gen1 = breedGeneration(gen0, 3, 1, noiseVar = .05, minLineDensity = 2.50)#was 2.5
-print("gen 1 breeding complete")
-gen1_x = lapply(gen1, '[[', 1)
-gen1_y = lapply(gen1, '[[', 2)
-plot(gen1_x, gen1_y, col=rgb(.9, 0, .7,.5), pch=19)
-
-gen2 = breedGeneration(gen1, 3, 1, noiseVar = .15, minLineDensity = .4, childMax = 4000)
-print("gen 2 breeding complete")
-gen2_x = lapply(gen2, '[[', 1)
-gen2_y = lapply(gen2, '[[', 2)
-
-plot(gen2_x, gen2_y, col=rgb(0, .8, .8, .2), pch=19)
-points(gen1_x, gen1_y, col=rgb(0, 0, .7, .5), pch=19)
-points(gen0_x, gen0_y, col=rgb(.88, 0, .88, 1), pch=19)
-cat("gen2 has",length(gen2),"points.")
+  return(children)
 }

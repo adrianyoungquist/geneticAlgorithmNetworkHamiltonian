@@ -1,74 +1,71 @@
-# Function to calculate the yield of different fibril topologies. This particular
-# fibril fraction function only counts nodes that are part of the interior of a
-# fibrillar section of a graph. Although it leads to undercounting on the ends,
-# its advantage is that it biases the genetic algorithm to produce longer stretches of fibril.
+# ------------------------------------------------------------------------
+# fibril_assay.R
 #
-# For documentation on using orca package, see paper: https://www.jstatsoft.org/article/view/v071i10/0 
-# Also see ergm graphlets package:
-# Omer N. Yaveroglu, Sean M. Fitzhugh, Maciej Kurant, Athina Markopoulou, Carter T. Butts,
-# Natasa Przulj. 2013 ergm.graphlets: A Package for ERG Modeling Based on Graphlet Statistics
-# http://CRAN.R-project.org/package=ergm.graphlets.
+# Purpose: Classify nodes in networks into different fibril topologies based on ORCA orbit counts.
 #
-# Local system requirements at the time of development required use of orca, but 
-# future updates will most likely utilize graphlets. 
+# Author: Gianmarc Grazioli and contributors
+# License: GPL-3
+#
+# This file is part of the fibga R package.
+# See GPL-3 License at <https://www.gnu.org/licenses/>.
+#
+# Note:
+# This fibril assay method biases the genetic algorithm toward forming longer fibril segments
+# by only counting interior nodes. It may slightly undercount nodes on fibril ends.
+# Based on ORCA orbit counts; see:
+# - https://www.jstatsoft.org/article/view/v071i10/0
+# - ergm.graphlets package: http://CRAN.R-project.org/package=ergm.graphlets
+# ------------------------------------------------------------------------
 
-library(orca)
+#' @title Fibril Assay Functions
+#' @description Classify nodes of networks into fibril topologies using ORCA orbit counts.
+#' @details
+#' This function calculates the yield of different fibril topologies.
+#' It counts only nodes that are part of the interior of a fibrillar section of a graph,
+#' leading to slight undercounting at fibril ends but encouraging longer fibrils.
+#'
+#' For background on ORCA orbit counting, see:
+#' \url{https://www.jstatsoft.org/article/view/v071i10/0}.
+#' Also see ergm.graphlets package:
+#' \url{http://CRAN.R-project.org/package=ergm.graphlets}.
+#' @name fibril_assay
+NULL
 
-fibril_assay <- function(net) { edgelist <- as.edgelist(net)
-  #Get the orbit degrees that we'll need for classification
-  od <- as.data.frame(count5(edgelist))
-  #  test for 1-ribbon:
-  isNode.in.1ribbon <- function(odRow) { rowTestResult <- ((odRow["O15"] == 2) &
-    (odRow["O16"] == 2) &
-    (odRow["O8"] == 0) &
-    (odRow["O7"] == 0))
-    rowTestResult }
+#' Classify Fibril Structures
+#'
+#' @description
+#' Takes a network and classifies each node into various fibril topology types based on graphlet orbit counts.
+#'
+#' @param net A network object.
+#' @return A data frame where each row is a node and each column indicates membership in a fibril topology.
+#' @examples
+#' set.seed(0)
+#' net <- network::network.initialize(24, directed = FALSE)
+#' net <- default_ergm_simulation(c(100, -50), "edges+kstar(2)",
+#'              list(burn_time = 2^20, node_count = 24))
+#' assay(net)
+#' @importFrom network as.edgelist
+#' @importFrom orca count5
+#' @export
+assay <- function(net) {
+  edgelist <- network::as.edgelist(net)
+  od <- as.data.frame(orca::count5(edgelist))
 
-  #  test for 2-ribbon:
-  isNode.in.2ribbon <- function(odRow) { rowTestResult <- ((odRow["O15"] == 12) &
-    (odRow["O16"] == 12) &
-    (odRow["O37"] == 4))
-    rowTestResult }
-
-  #  test for 1,2 2-ribbon:
-  isNode.in.12.2ribbon <- function(odRow) { role1 <- (odRow["O59"] == 1 &
-    odRow["O60"] == 1 &
-    odRow["O13"] == 1)
-    role3 <- (odRow["O45"] == 2 &
-      odRow["O46"] == 2 &
-      odRow["O47"] == 2 &
-      odRow["O48"] == 4 &
-      odRow["O61"] == 1 &
-      odRow["O60"] == 2 &
-      odRow["O59"] == 2)
-    rowTestResult <- (role1 | role3)
-    rowTestResult }
-
-  #  tests for 3-prism
-  isNode.in.3prism <- function(odRow) { rowTestResult <- ((odRow["O53"] == 4) &
-    (odRow["O52"] == 2) &
-    (odRow["O51"] == 4) &
-    (odRow["O38"] == 4) &
-    (odRow["O37"] == 8) &
-    (odRow["O36"] == 4) &
-    (odRow["O35"] == 4) &
-    (odRow["O33"] == 1))
-    rowTestResult }
-
-  #  test for double 1,2 2-ribbon:
-  isNode.in.double.12.2ribbon <- function(odRow) { rowTestResult <- (((odRow["O67"] == 4) &
-    (odRow["O66"] == 4) &
-    (odRow["O65"] == 2)) | ((odRow["O67"] == 0) &
-    (odRow["O66"] == 2) &
-    (odRow["O65"] == 1))) }
-
-  topology.types <- c("1-ribbon", "2-ribbon", "1,2 2-ribbon", "double 1,2 2-ribbon", "3-prism")
-  membership <- as.data.frame(matrix(0, nrow = net$gal$n, ncol = length(topology.types)))
-  colnames(membership) <- topology.types
-  for (i in 1:nrow(od)) { if (isNode.in.1ribbon(od[i,])) membership[i, "1-ribbon"] = 1
-    if (isNode.in.2ribbon(od[i,])) membership[i, "2-ribbon"] = 1
-    if (isNode.in.12.2ribbon(od[i,])) membership[i, "1,2 2-ribbon"] = 1
-    if (isNode.in.double.12.2ribbon(od[i,])) membership[i, "double 1,2 2-ribbon"] = 1
-    if (isNode.in.3prism(od[i,])) membership[i, "3-prism"] = 1 }
-  return(membership) }
-
+  # Classify node into different fibril types based on ORCA orbit counts
+  classify_node <- function(row) {
+    c(
+      "1-ribbon" = as.integer(row["O15"] == 2 & row["O16"] == 2 & row["O8"] == 0 & row["O7"] == 0),
+      "2-ribbon" = as.integer(row["O15"] == 12 & row["O16"] == 12 & row["O37"] == 4),
+      "1,2 2-ribbon" = as.integer((row["O59"] == 1 & row["O60"] == 1 & row["O13"] == 1) |
+                                    (row["O45"] == 2 & row["O46"] == 2 & row["O47"] == 2 &
+                                      row["O48"] == 4 & row["O61"] == 1 & row["O60"] == 2 & row["O59"] == 2)),
+      "double 1,2 2-ribbon" = as.integer((row["O67"] == 4 & row["O66"] == 4 & row["O65"] == 2) |
+                                           (row["O67"] == 0 & row["O66"] == 2 & row["O65"] == 1)),
+      "3-prism" = as.integer(row["O53"] == 4 & row["O52"] == 2 & row["O51"] == 4 &
+                               row["O38"] == 4 & row["O37"] == 8 & row["O36"] == 4 &
+                               row["O35"] == 4 & row["O33"] == 1)
+    )
+  }
+  membership <- t(apply(od, 1, classify_node))
+  as.data.frame(membership)
+}
