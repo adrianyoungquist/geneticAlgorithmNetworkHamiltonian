@@ -1,30 +1,28 @@
-Genetic Algorithm for Network Hamiltonian Models
-================
+---
+title: "Genetic Algorithm for Network Hamiltonian Models"
+output: github_document
+---
 
 [![DOI](https://zenodo.org/badge/669169796.svg)](https://zenodo.org/badge/latestdoi/669169796)
 
 # fibga
 
-**Genetic algorithm for automated network Hamiltonian model
-parameterization**
+**Genetic algorithm for automated network Hamiltonian model parameterization**
 
 This package implements the genetic algorithm described in the article:
 
-> *“A Genetic Algorithm for Automated Parameterization of Network
-> Hamiltonian Models of Amyloid Fibril Formation”*  
+> *"A Genetic Algorithm for Automated Parameterization of Network Hamiltonian Models of Amyloid Fibril Formation"*  
 > by Gianmarc Grazioli, Andy Tao, Inika Bhatia, and Patrick Regan  
-> Currently under review at *Digital Discovery* (Royal Society of
-> Chemistry)  
-> Preprint:
-> <https://chemrxiv.org/engage/chemrxiv/article-details/64a3d048ba3e99daef7c671a>
+> Currently under review at *Digital Discovery* (Royal Society of Chemistry)  
+> Preprint: [https://chemrxiv.org/engage/chemrxiv/article-details/64a3d048ba3e99daef7c671a](https://chemrxiv.org/engage/chemrxiv/article-details/64a3d048ba3e99daef7c671a)
 
-------------------------------------------------------------------------
+---
 
 # Installation
 
 You can install the development version of `fibga` from source:
 
-``` r
+```r
 # Install devtools if needed
 install.packages("devtools")
 
@@ -32,17 +30,22 @@ install.packages("devtools")
 devtools::install()
 ```
 
-You will also need to install the following dependencies if they are not
-installed: - `network` - `ergm` - `orca` - `parallel` - `stats` -
-`graphics` - `rmarkdown` (for building vignettes)
+You will also need to install the following dependencies if they are not installed:
+- `network`
+- `ergm`
+- `orca`
+- `parallel`
+- `stats`
+- `graphics`
+- `rmarkdown` (for building vignettes)
 
-------------------------------------------------------------------------
+---
 
 # Basic Usage
 
 After installing, load the package:
 
-``` r
+```r
 library(fibga)
 library(network)
 library(ergm)
@@ -50,7 +53,7 @@ library(ergm)
 
 Then you can run a full small evolution:
 
-``` r
+```r
 # Define an initial parameter vector
 init_param <- c(100, -30, 10, 26)
 
@@ -73,38 +76,39 @@ plot(results$mean_fibril_fractions, type = "b",
 
 A full vignette is available with:
 
-``` r
+```r
 browseVignettes("fibga")
 ```
 
-------------------------------------------------------------------------
+---
 
 # Customization for Other Fibril Types
 
-To adapt this package to evolve networks toward different topological
-structures:
+To adapt this package to evolve networks toward different topological structures:
 
 - Use `main.R` as a guide for scripting custom evolution runs.
-- Modify `fibril_assay.R` to define new graph structure membership
-  criteria based on ORCA orbit counts.
+- Modify `fibril_assay.R` to define new graph structure membership criteria based on ORCA orbit counts.
 
-The core breeding, simulation, and evolution functions are modular and
-reusable.
+The core breeding, simulation, and evolution functions are modular and reusable.
 
-------------------------------------------------------------------------
+---
 
 # Runtime and Performance
 
-The main function `run_full_evolution()` as configured in example
-settings typically runs in under **10 minutes** on a 2019 MacBook Pro
-with: - 2.4 GHz 8-Core Intel Core i9 processor - 64 GB RAM
+The main function `run_full_evolution()` as configured in example settings typically runs
+in under **10 minutes** on a 2019 MacBook Pro with:
+- 2.4 GHz 8-Core Intel Core i9 processor
+- 64 GB RAM
 
-Performance will vary depending on: - Number of nodes - Burn-in time -
-Number of parallel cores - Number of generations evolved
+Performance will vary depending on:
+- Number of nodes
+- Burn-in time
+- Number of parallel cores
+- Number of generations evolved
 
 Parallelism is supported via `parallel::mclapply()`.
 
-------------------------------------------------------------------------
+---
 
 # Author
 
@@ -113,4 +117,4 @@ Additional contributions by Andy Tao, Inika Bhatia, and Patrick Regan.
 
 Licensed under GPL-3.
 
-------------------------------------------------------------------------
+---

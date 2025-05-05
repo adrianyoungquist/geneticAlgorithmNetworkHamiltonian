@@ -1,0 +1,84 @@
+---
+title: "Introduction to fibga: Simulating and Evolving Networks"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to fibga: Simulating and Evolving Networks}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, echo = FALSE}
+library(fibga)
+```
+
+# Overview
+
+The `fibga` package implements a genetic algorithm for discovering parameter sets
+that encourage amyloid fibril formation in network models. It simulates networks using ERGM models,
+selects high-yield topologies, and evolves parameters across generations.
+
+This vignette walks through a basic example of using the package.
+
+# Basic Concepts
+
+- **Breeding:** Create offspring parameter sets by interpolating between parent vectors.
+- **Mutation:** Add random noise to parameter sets.
+- **Evolution:** Select the best-performing parameter sets and evolve them across generations.
+- **Fibril Assay:** Classify network nodes into fibril structures based on orbit counts.
+
+# Quick Example: Running Full Evolution
+
+Let's run a very small example:
+
+```{r full-evolution-example, eval=TRUE}
+set.seed(0)
+# Define an initial parameter set
+init_param <- c(100, -30, 0.5, 5)
+
+# Run the evolution pipeline
+results <- run_full_evolution(init_param = init_param,
+                              spheroid_pt_count = 40,
+                              radius = 2,
+                              node_count = 48,
+                              suff_stats = "edges+kstar(2)+nsp(1:2)",
+                              fib_type = "2-ribbon",
+                              num_generations = 3,
+                              burn_time = 2^18,
+                              np = 1)
+
+best_params <- results$final_sims[[which.max(results$mean_fibril_fractions)]]$params[[1]]
+# Plot mean fibril yields across generations
+plot(results$mean_fibril_fractions, type = "b",
+     main = "Mean Fibril Yields Across Evolution",
+     ylab = "Mean Fibril Yield")
+```
+
+# Understanding the Output
+
+- `results$generations` contains the parameter sets that survived each generation.
+- `results$final_sims` contains simulations run with the final parameters.
+- `results$mean_fibril_fractions` shows how the mean fibril yield improves over generations.
+
+# Advanced Options
+
+You can adjust several settings in `run_full_evolution`:
+
+- **`burn_time`:** Increase for more thorough ERGM sampling.
+- **`generations`:** Evolve over more generations.
+- **`spheroid_pt_count`:** Sample more initial parameter points.
+- **`np`:** Increase number of CPU cores for faster simulation.
+
+# Notes and References
+
+- Fibril topology classification uses orbit counts computed via the ORCA software.
+- For more details, see:
+  - ORCA documentation: [JSS article](https://www.jstatsoft.org/article/view/v071i10/0)
+  - ergm.graphlets package: [CRAN page](https://CRAN.R-project.org/package=ergm.graphlets)
+---
