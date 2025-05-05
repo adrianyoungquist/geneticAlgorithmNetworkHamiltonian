@@ -58,7 +58,5 @@ set_log_backend <- function(backend = c("base", "parallel")) {
     if (!requireNamespace("ParallelLogger", quietly = TRUE)) {
       stop("ParallelLogger package is not installed.")
     }
-    ParallelLogger::clearLoggers()
-    ParallelLogger::addDefaultFileLogger("fibril_log.txt", name = "main", threshold = "INFO")
   }
 }

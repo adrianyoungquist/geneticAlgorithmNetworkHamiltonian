@@ -117,7 +117,7 @@ simulate_parallel_with_yield <- function(param_list, suff_stats, fib_type, node_
 #' @description
 #' Simulates multiple parameter sets in parallel.
 #'
-#' @param params List of parameter vectors.
+#' @param param_list List of parameter vectors.
 #' @param suff_stats ERGM sufficient statistics formula.
 #' @param node_count Number of nodes.
 #' @param burn_time MCMC burn-in time.
@@ -129,21 +129,27 @@ simulate_parallel_with_yield <- function(param_list, suff_stats, fib_type, node_
 #' simulate_parallel(list(c(1, -1), c(2, -2)), "edges+kstar(2)", 48, np = 2)
 #' @importFrom parallel makeCluster parLapply stopCluster
 #' @export
-simulate_parallel <- function(params, suff_stats, node_count, burn_time = 2^20, np = 16,
+simulate_parallel <- function(param_list, suff_stats, node_count, burn_time = 2^20, np = 16,
                               simulation_function = default_ergm_simulation, sim_args = list(burn_time=burn_time, node_count=node_count)) {
-  run_simulation <- function(p) {
-    list(sim = run_one_sim(p, suff_stats, node_count, burn_time, simulation_function, sim_args = sim_args, disable_parallel = TRUE),  # Always np=1 inside
-         params = p,
-         suff_stats = suff_stats)
-  }
 
+  func_args <-  list(sim_args = sim_args, suff_stats = suff_stats, node_count = node_count, burn_time = burn_time, simulation_function = simulation_function)
   if (np > 1) {
     cl <- parallel::makeCluster(np)
     on.exit(parallel::stopCluster(cl))
-    parallel::parLapply(cl, params, run_simulation)
+    log_message(level = "INFO", "created cluster")
+    results <- parallel::parLapply(cl, param_list, function(param, args = func_args) {
+      log_message(level = "INFO", "starting run_one_sim for ", param)
+      sim_result <- run_one_sim(param, args$suff_stats, args$node_count, args$burn_time, args$simulation_function, sim_args = args$sim_args, disable_parallel = TRUE)
+      list(sim_result = sim_result, params = param, suff_stats = args$suff_stats)
+    })
   } else {
-    lapply(params, run_simulation)
+    results <- lapply(param_list, function(param) {
+      list(sim = run_one_sim(param, suff_stats, node_count, burn_time, simulation_function, sim_args = sim_args, disable_parallel = FALSE),
+           params = param,
+           suff_stats = suff_stats)
+    })
   }
+  return(results)
 }
 
 #' @title Default ERGM Simulation Function
