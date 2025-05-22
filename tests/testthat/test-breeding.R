@@ -15,8 +15,7 @@ test_that("add_noise_to_point adds noise correctly", {
 test_that("breed_generation produces non-empty list", {
   parents <- list(c(0, 0), c(5, 5))
   kids <- breed_generation(parents, num_lin_kids = 5, num_mutants = 2)
-  log_message(level = "INFO", "kids:")
-  log_message(level = "INFO", kids)
+  print(paste("kids:", kids))
   expect_type(kids, "list")
   expect_equal(length(kids), 12)
 })
